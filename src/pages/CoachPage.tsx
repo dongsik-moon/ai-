@@ -10,6 +10,7 @@ import {
   HelpCircle,
 } from 'lucide-react';
 import { ChatMessage, UserProfile } from '../types/career';
+import { safePostJson } from '../utils/apiClient';
 
 interface CoachPageProps {
   chatHistory: ChatMessage[];
@@ -62,26 +63,16 @@ export const CoachPage: React.FC<CoachPageProps> = ({
     setIsLoading(true);
 
     try {
-      const res = await fetch('/api/ai/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          messages: newHistory,
-          userContext: {
-            name: profile.name,
-            targetRole: profile.targetRole,
-            education: profile.education,
-            major: profile.major,
-          },
-        }),
+      const data = await safePostJson<{ reply: string }>('/api/ai/chat', {
+        messages: newHistory,
+        userContext: {
+          name: profile.name,
+          targetRole: profile.targetRole,
+          education: profile.education,
+          major: profile.major,
+        },
       });
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || `서버 오류 (${res.status})`);
-      }
-
-      const data = await res.json();
       const botMsg: ChatMessage = {
         id: `msg-${Date.now() + 1}`,
         role: 'assistant',
@@ -98,7 +89,7 @@ export const CoachPage: React.FC<CoachPageProps> = ({
       const errorMsg: ChatMessage = {
         id: `msg-${Date.now() + 1}`,
         role: 'assistant',
-        content: `⚠️ [오류 발생]: ${err.message || '답변을 생성하지 못했습니다. 잠시 후 다시 시도해주세요.'}`,
+        content: `⚠️ [AI 연결 오류]: ${err.message || '답변을 생성하지 못했습니다. 잠시 후 다시 시도해주세요.'}`,
         timestamp: new Date().toLocaleTimeString('ko-KR', {
           hour: '2-digit',
           minute: '2-digit',

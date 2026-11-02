@@ -20,6 +20,7 @@ import {
   PortfolioItem,
   DiagnosisResult,
 } from '../types/career';
+import { safePostJson } from '../utils/apiClient';
 
 interface AIMissionModalProps {
   isOpen: boolean;
@@ -75,24 +76,12 @@ export const AIMissionModal: React.FC<AIMissionModalProps> = ({
     try {
       const completed = missions.filter((m) => m.status === 'completed');
 
-      const res = await fetch('/api/ai/diagnose', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          profile,
-          skills,
-          completedMissions: completed,
-          portfolioItems,
-        }),
+      const data = await safePostJson<any>('/api/ai/diagnose', {
+        profile,
+        skills,
+        completedMissions: completed,
+        portfolioItems,
       });
-
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || `서버 오류 (${res.status})`);
-      }
-
-      setLoadingStep('현대자동차 R&D 차량설계·차체해석 기준 역량 격차 분석 중...');
-      const data = await res.json();
 
       // Format diagnosis result
       const newDiagnosis: DiagnosisResult = {
@@ -126,29 +115,19 @@ export const AIMissionModal: React.FC<AIMissionModalProps> = ({
     try {
       const existingTitles = missions.map((m) => m.title);
 
-      const res = await fetch('/api/ai/generate-missions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          profile,
-          existingMissionTitles: existingTitles,
-          settings: {
-            purpose,
-            difficulty,
-            duration,
-            priority,
-            count,
-            deliverableType,
-          },
-        }),
+      const data = await safePostJson<any>('/api/ai/generate-missions', {
+        profile,
+        existingMissionTitles: existingTitles,
+        settings: {
+          purpose,
+          difficulty,
+          duration,
+          priority,
+          count,
+          deliverableType,
+        },
       });
 
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson.error || `서버 오류 (${res.status})`);
-      }
-
-      const data = await res.json();
       const rawList = data.missions || [];
 
       if (!Array.isArray(rawList) || rawList.length === 0) {

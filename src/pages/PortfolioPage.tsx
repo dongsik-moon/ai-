@@ -18,6 +18,7 @@ import {
   PortfolioStatus,
   PortfolioCritique,
 } from '../types/career';
+import { safePostJson } from '../utils/apiClient';
 
 interface PortfolioPageProps {
   portfolioItems: PortfolioItem[];
@@ -56,18 +57,11 @@ export const PortfolioPage: React.FC<PortfolioPageProps> = ({
     setCritiqueError(null);
 
     try {
-      const res = await fetch('/api/ai/critique-portfolio', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ portfolioItem: item }),
-      });
+      const critique = await safePostJson<PortfolioCritique>(
+        '/api/ai/critique-portfolio',
+        { portfolioItem: item }
+      );
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || `서버 오류 (${res.status})`);
-      }
-
-      const critique: PortfolioCritique = await res.json();
       const updated: PortfolioItem = {
         ...item,
         aiCritique: critique,
