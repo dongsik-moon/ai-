@@ -1,0 +1,6 @@
+{
+  "name": "Career Mission AI",
+  "description": "현대자동차 R&D 차량설계 및 차체해석 엔지니어 취업 준비 특화 AI 성장 플랫폼",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
